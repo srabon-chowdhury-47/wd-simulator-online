@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HTML Live Simulator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: #ffffff;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      font-size: 24px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: #4CAF50;
+    }
+
+    .btn-primary:hover {
+      background: #45a049;
+    }
+
+    main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .editor, .output {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .panel-title {
+      font-weight: 600;
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .editor {
+      background-color: #1f1f1f;
+    }
+
+    textarea {
+      width: 100%;
+      flex: 1;
+      background: #2d2d2d;
+      color: #ffffff;
+      border: none;
+      resize: none;
+      font-family: 'Fira Code', monospace;
+      font-size: 14px;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.4);
+      line-height: 1.5;
+    }
+
+    .output {
+      background: #ffffff;
+      border-top-left-radius: 10px;
+      border-bottom-left-radius: 10px;
+      color: #333;
+    }
+
+    iframe {
+      width: 100%;
+      flex: 1;
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      background: white;
+    }
+
+    footer {
+      text-align: center;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.3);
+      font-size: 14px;
+    }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 24px;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      color: #333;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      margin-bottom: 16px;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+      }
+      .output {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+      header {
+        flex-direction: column;
+        gap: 12px;
+      }
+      .controls {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-title">
+      <i class="fas fa-code"></i>
+      <span>HTML Live Simulator</span>
+    </div>
+    <div class="controls">
+      <button class="btn" onclick="copyCode()">
+        <i class="fas fa-copy"></i>
+        Copy
+      </button>
+      <button class="btn btn-primary" onclick="showSaveModal()">
+        <i class="fas fa-save"></i>
+        Save
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Editor Panel -->
+    <div class="editor">
+      <div class="panel-header">
+        <div class="panel-title">Editor</div>
+      </div>
+      <textarea id="codeEditor" oninput="updateOutput()" spellcheck="false">
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      h1 { color: green; }
+    </style>
+  </head>
+  <body>
+    <h1>Hello, World!</h1>
+    <p>This is a live preview.</p>
+  </body>
+</html>
+      </textarea>
+    </div>
+
+    <!-- Output Panel -->
+    <div class="output">
+      <div class="panel-header">
+        <div class="panel-title">Preview</div>
+      </div>
+      <iframe id="previewFrame" title="HTML Preview"></iframe>
+    </div>
+  </main>
+
+  <footer>
+    Developed by Md Srabon Chowdhury
+  </footer>
+
+  <!-- Save Modal -->
+  <div id="saveModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-title">
+        <i class="fas fa-save"></i> Save File
+      </div>
+      <div class="form-group">
+        <label for="filename">File Name</label>
+        <input type="text" id="filename" class="form-control" value="my-document.html" placeholder="Enter file name">
+      </div>
+      <div class="modal-actions">
+        <button class="btn" onclick="hideSaveModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveFile()">
+          <i class="fas fa-download"></i> Save
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function updateOutput() {
+      const code = document.getElementById('codeEditor').value;
+      const frame = document.getElementById('previewFrame');
+      frame.srcdoc = code;
+    }
+
+    function copyCode() {
+      const codeEditor = document.getElementById('codeEditor');
+      codeEditor.select();
+      document.execCommand('copy');
+      
+      // Show feedback
+      const copyBtn = document.querySelector('.btn:nth-child(1)');
+      const originalText = copyBtn.innerHTML;
+      copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+      setTimeout(() => {
+        copyBtn.innerHTML = originalText;
+      }, 2000);
+    }
+
+    function showSaveModal() {
+      document.getElementById('saveModal').style.display = 'flex';
+      document.getElementById('filename').focus();
+    }
+
+    function hideSaveModal() {
+      document.getElementById('saveModal').style.display = 'none';
+    }
+
+    function saveFile() {
+      const code = document.getElementById('codeEditor').value;
+      const filename = document.getElementById('filename').value;
+      
+      // Ensure the filename has .html extension
+      let finalFilename = filename;
+      if (!filename.toLowerCase().endsWith('.html') && !filename.toLowerCase().endsWith('.htm')) {
+        finalFilename = filename + '.html';
+      }
+      
+      const blob = new Blob([code], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = finalFilename;
+      document.body.appendChild(a);
+      a.click();
+      
+      // Cleanup
+      setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+      }, 100);
+      
+      hideSaveModal();
+    }
+
+    // Initialize output
+    updateOutput();
+  </script>
+
+</body>
+</html>
